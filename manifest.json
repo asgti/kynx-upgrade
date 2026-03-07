@@ -1,1 +1,10 @@
 
+{
+  "name": "Kynx OS Upgrade Repository",
+  "version_file": "version.txt",
+  "packages_dir": "packages",
+  "assets_dir": "assets",
+  "apps_dir": "apps",
+  "system_dir": "system",
+  "scripts_dir": "scripts"
+}
