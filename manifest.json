@@ -6,27 +6,23 @@
   "documentation": "https://kynx-os.org",
   "channel": "development",
   "format_version": 1,
-
   "version_file": "version.txt",
   "packages_dir": "packages",
   "assets_dir": "assets",
   "apps_dir": "apps",
   "system_dir": "system",
   "scripts_dir": "scripts",
-
   "kupgrade": {
     "repository_user": "asgti",
     "repository_name": "kynx-upgrade",
     "version_file": "version.txt",
     "post_upgrade_script": "scripts/post-upgrade.sh"
   },
-
   "system": {
     "os_name": "Kynx OS",
     "kernel_sysname": "Kynx-Kernel",
     "kernel_release_base": "6.12.76-kynx"
   },
-
   "layout": {
     "apps": "apps",
     "assets": "assets",
@@ -37,7 +33,6 @@
     "version": "version.txt",
     "post_upgrade": "scripts/post-upgrade.sh"
   },
-
   "install_map": {
     "apps": "/opt/kynx/apps",
     "assets": "/usr/share/kynx/assets",
@@ -47,11 +42,9 @@
     "manifest": "/usr/share/kynx/manifest.json",
     "version": "/usr/share/kynx/version.txt"
   },
-
   "notes": [
     "system/ content is copied into /usr/share/kynx/system and is not auto-applied unless scripts/post-upgrade.sh does it",
     "packages/*.sh are installed into /usr/bin without the .sh suffix",
     "This manifest is for Kynx GitHub-based kupgrade layout"
   ]
 }
-
