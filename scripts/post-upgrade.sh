@@ -1,37 +1,54 @@
 #!/bin/sh
-set -e
+set -eu
 
 LOG_FILE="/var/log/kynx-kupgrade.log"
-KYNX_DATA="/usr/share/kynx"
-SRC_GRUB="$KYNX_DATA/system/grub"
-DST_GRUB="/boot/grub/themes/kynx"
-WALLPAPER_DIR="/usr/share/backgrounds/kynx"
-LOGO_DIR="/usr/share/kynx/branding"
+KYNX_SHARE="/usr/share/kynx"
+KYNX_ETC="/etc/kynx"
+KYNX_APPS="/opt/kynx/apps"
+KYNX_STATE="/var/lib/kynx"
+KYNX_BRANDING="/usr/share/kynx/branding"
+KYNX_WALLPAPERS="/usr/share/backgrounds/kynx"
+SRC_SYSTEM_GRUB="$KYNX_SHARE/system/grub"
+OS_RELEASE_FILE="/usr/lib/os-release"
 
-KYNX_VER="$(cat "$KYNX_DATA/version.txt" 2>/dev/null || echo "unknown")"
+KYNX_VER="$(cat "$KYNX_SHARE/version.txt" 2>/dev/null || echo "unknown")"
 
 mkdir -p /var/log
-mkdir -p "$DST_GRUB"
-mkdir -p "$WALLPAPER_DIR"
-mkdir -p "$LOGO_DIR"
+mkdir -p "$KYNX_ETC"
+mkdir -p "$KYNX_APPS"
+mkdir -p "$KYNX_STATE"
+mkdir -p "$KYNX_BRANDING"
+mkdir -p "$KYNX_WALLPAPERS"
 
-echo "===== Kynx post-upgrade =====" >> "$LOG_FILE"
+log() {
+    printf '%s\n' "$1" >> "$LOG_FILE"
+}
+
+log "===== Kynx post-upgrade ====="
 date >> "$LOG_FILE"
-echo "Version: $KYNX_VER" >> "$LOG_FILE"
+log "Version: $KYNX_VER"
 
-if [ -f "$SRC_GRUB/logo.png" ]; then
-    cp -f "$SRC_GRUB/logo.png" "$DST_GRUB/logo.png"
-    cp -f "$SRC_GRUB/logo.png" "$LOGO_DIR/logo.png"
-    echo "Copied logo.png" >> "$LOG_FILE"
+if [ -f "$KYNX_SHARE/version.txt" ]; then
+    cp -f "$KYNX_SHARE/version.txt" "$KYNX_ETC/repo-version"
+    log "Updated /etc/kynx/repo-version"
 fi
 
-if [ -f "$SRC_GRUB/kynx-wallpapers-grub.jpg" ]; then
-    cp -f "$SRC_GRUB/kynx-wallpapers-grub.jpg" "$DST_GRUB/kynx-wallpapers-grub.jpg"
-    cp -f "$SRC_GRUB/kynx-wallpapers-grub.jpg" "$WALLPAPER_DIR/default.jpg"
-    echo "Copied kynx-wallpapers-grub.jpg" >> "$LOG_FILE"
+if [ -f "$KYNX_SHARE/manifest.json" ]; then
+    cp -f "$KYNX_SHARE/manifest.json" "$KYNX_ETC/manifest.json"
+    log "Updated /etc/kynx/manifest.json"
 fi
 
-cat > /etc/issue << EOF
+if [ -f "$SRC_SYSTEM_GRUB/logo.png" ]; then
+    cp -f "$SRC_SYSTEM_GRUB/logo.png" "$KYNX_BRANDING/logo.png"
+    log "Copied branding logo"
+fi
+
+if [ -f "$SRC_SYSTEM_GRUB/kynx-wallpapers-grub.jpg" ]; then
+    cp -f "$SRC_SYSTEM_GRUB/kynx-wallpapers-grub.jpg" "$KYNX_WALLPAPERS/default.jpg"
+    log "Copied default wallpaper"
+fi
+
+cat > /etc/issue << EOF_ISSUE
 Kynx OS Beta $KYNX_VER
 Kernel: \r
 Host: \n
@@ -40,17 +57,17 @@ Console: \l
 Official sites:
 - https://kynx.xyz
 - https://kynx-os.org
-EOF
+EOF_ISSUE
 
-cat > /etc/motd << EOF
+cat > /etc/motd << EOF_MOTD
 Welcome to Kynx OS Beta $KYNX_VER
 
 Official sites:
 https://kynx.xyz
 https://kynx-os.org
-EOF
+EOF_MOTD
 
-cat > /etc/os-release << EOF
+cat > "$OS_RELEASE_FILE" << EOF_OS
 NAME="Kynx OS"
 PRETTY_NAME="Kynx OS Beta $KYNX_VER"
 ID=kynx
@@ -61,9 +78,11 @@ DOCUMENTATION_URL="https://kynx-os.org"
 SUPPORT_URL="https://kynx-os.org"
 BUG_REPORT_URL="https://kynx-os.org"
 ANSI_COLOR="1;36"
-EOF
+EOF_OS
 
-echo "Updated /etc/issue" >> "$LOG_FILE"
-echo "Updated /etc/motd" >> "$LOG_FILE"
-echo "Updated /etc/os-release" >> "$LOG_FILE"
-echo "Post-upgrade completed successfully." >> "$LOG_FILE"
+log "Updated /etc/issue"
+log "Updated /etc/motd"
+log "Updated $OS_RELEASE_FILE"
+log "Post-upgrade completed successfully."
+
+echo "Kynx post-upgrade completed."
