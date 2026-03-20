@@ -30,41 +30,80 @@ refuse_system_disk() {
   fi
 }
 
+partition_path() {
+  DISK="${1:-}"
+  case "$DISK" in
+    *nvme*|*mmcblk*) echo "${DISK}p1" ;;
+    *) echo "${DISK}1" ;;
+  esac
+}
+
+ensure_tools() {
+  for c in sfdisk wipefs mkfs.ext4 rsync grub-install; do
+    command -v "$c" >/dev/null 2>&1 || {
+      echo "missing tool: $c"
+      echo "install with: apk add --no-cache util-linux e2fsprogs rsync grub grub-bios"
+      exit 1
+    }
+  done
+
+  [ -f /usr/share/kynx/system/boot/vmlinuz-kynx ] || {
+    echo "missing kernel asset: /usr/share/kynx/system/boot/vmlinuz-kynx"
+    exit 1
+  }
+}
+
 do_dry_run() {
   DISK="${1:-}"
+  PART="$(partition_path "$DISK")"
   check_disk "$DISK"
 
   echo "Kynx Installer Dry Run"
   echo "Target disk: $DISK"
+  echo "Target root partition: $PART"
   echo "Planned layout:"
-  echo "  - format entire disk as ext4"
+  echo "  - wipe disk"
+  echo "  - create msdos partition table"
+  echo "  - create ext4 root partition"
   echo "  - copy Kynx system rootfs"
-  echo "  - write fstab for direct-kernel boot"
-  echo "  - sync and unmount"
-  echo
-  echo "Installer v1 note:"
-  echo "  direct-kernel rootfs install only"
-  echo "  GRUB/partitioned install comes in v2"
+  echo "  - copy kernel to /boot/vmlinuz-kynx"
+  echo "  - write fstab"
+  echo "  - write grub.cfg"
+  echo "  - install BIOS GRUB"
 }
 
-do_apply() {
+do_apply_v2() {
   DISK="${1:-}"
-  check_disk "$DISK"
-  refuse_system_disk "$DISK"
-
+  PART="$(partition_path "$DISK")"
   TARGET_MNT="/mnt/kynx-target"
 
-  echo "[1/6] formatting $DISK as ext4"
-  if command -v wipefs >/dev/null 2>&1; then
-    wipefs -a "$DISK" || true
-  fi
-  mkfs.ext4 -F -L KYNXROOT "$DISK"
+  check_disk "$DISK"
+  refuse_system_disk "$DISK"
+  ensure_tools
 
-  echo "[2/6] mounting target"
+  echo "[1/8] wiping disk signatures"
+  umount "$PART" 2>/dev/null || true
+  wipefs -a "$DISK" || true
+
+  echo "[2/8] partitioning disk"
+  printf 'label: dos\n, ,L,*\n' | sfdisk "$DISK"
+  sync
+  sleep 2
+
+  [ -b "$PART" ] || {
+    echo "partition not found after partitioning: $PART"
+    exit 1
+  }
+
+  echo "[3/8] formatting $PART as ext4"
+  mkfs.ext4 -F -L KYNXROOT "$PART"
+
+  echo "[4/8] mounting target"
   mkdir -p "$TARGET_MNT"
-  mount "$DISK" "$TARGET_MNT"
+  mount "$PART" "$TARGET_MNT"
+  mkdir -p "$TARGET_MNT/boot" "$TARGET_MNT/etc"
 
-  echo "[3/6] copying root filesystem"
+  echo "[5/8] copying root filesystem"
   rsync -aHAX --numeric-ids \
     --exclude='/proc/*' \
     --exclude='/sys/*' \
@@ -78,21 +117,41 @@ do_apply() {
     --exclude='/var/cache/apk/*' \
     / "$TARGET_MNT"/
 
-  echo "[4/6] writing fstab"
-  mkdir -p "$TARGET_MNT/etc"
+  echo "[6/8] installing boot files"
+  cp -f /usr/share/kynx/system/boot/vmlinuz-kynx "$TARGET_MNT/boot/vmlinuz-kynx"
+
   cat > "$TARGET_MNT/etc/fstab" << 'EOL'
-/dev/vda / ext4 defaults 0 1
+/dev/vda1 / ext4 defaults 0 1
 EOL
 
-  echo "[5/6] syncing"
-  sync
+  mkdir -p "$TARGET_MNT/boot/grub"
+  cat > "$TARGET_MNT/boot/grub/grub.cfg" << 'EOL'
+set timeout=3
+set default=0
 
-  echo "[6/6] unmounting"
+if background_image /usr/share/kynx/system/grub/kynx-wallpapers-grub.jpg; then
+  true
+fi
+
+menuentry "Kynx OS" {
+  linux /boot/vmlinuz-kynx root=/dev/vda1 rw rootfstype=ext4 quiet loglevel=3 vt.global_cursor_default=0
+}
+EOL
+
+  echo "[7/8] installing grub"
+  grub-install \
+    --target=i386-pc \
+    --boot-directory="$TARGET_MNT/boot" \
+    --modules="part_msdos ext2 biosdisk" \
+    "$DISK"
+
+  echo "[8/8] syncing and unmounting"
+  sync
   umount "$TARGET_MNT"
 
   echo
   echo "install completed to $DISK"
-  echo "installer v1 result: direct-kernel rootfs written successfully"
+  echo "installer v2 result: partitioned disk + grub installed successfully"
 }
 
 case "$MODE" in
@@ -103,20 +162,20 @@ case "$MODE" in
     DISK="${2:-}"
     do_dry_run "$DISK"
     ;;
-  apply)
+  apply-v2)
     DISK="${2:-}"
     CONFIRM="${3:-}"
     [ "$CONFIRM" = "--yes" ] || {
-      echo "usage: kynx-installer-core apply /dev/vdb --yes"
+      echo "usage: kynx-installer-core apply-v2 /dev/vdb --yes"
       exit 1
     }
-    do_apply "$DISK"
+    do_apply_v2 "$DISK"
     ;;
   *)
     echo "usage:"
     echo "  kynx-installer-core probe"
     echo "  kynx-installer-core dry-run /dev/vdX"
-    echo "  kynx-installer-core apply /dev/vdX --yes"
+    echo "  kynx-installer-core apply-v2 /dev/vdX --yes"
     exit 1
     ;;
 esac
