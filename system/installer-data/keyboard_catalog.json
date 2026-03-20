@@ -1,0 +1,182 @@
+[
+  {
+    "id": "us",
+    "name": "English (US)",
+    "mode": "offline"
+  },
+  {
+    "id": "gb",
+    "name": "English (UK)",
+    "mode": "offline"
+  },
+  {
+    "id": "ara",
+    "name": "Arabic",
+    "mode": "offline"
+  },
+  {
+    "id": "iq",
+    "name": "Arabic (Iraq)",
+    "mode": "offline"
+  },
+  {
+    "id": "ku",
+    "name": "Kurdish",
+    "mode": "offline"
+  },
+  {
+    "id": "tr",
+    "name": "Turkish",
+    "mode": "offline"
+  },
+  {
+    "id": "ir",
+    "name": "Persian",
+    "mode": "offline"
+  },
+  {
+    "id": "ur",
+    "name": "Urdu",
+    "mode": "offline"
+  },
+  {
+    "id": "de",
+    "name": "German",
+    "mode": "offline"
+  },
+  {
+    "id": "fr",
+    "name": "French",
+    "mode": "offline"
+  },
+  {
+    "id": "fr-be",
+    "name": "French (Belgium)",
+    "mode": "offline"
+  },
+  {
+    "id": "fr-ca",
+    "name": "French (Canada)",
+    "mode": "offline"
+  },
+  {
+    "id": "es",
+    "name": "Spanish",
+    "mode": "offline"
+  },
+  {
+    "id": "it",
+    "name": "Italian",
+    "mode": "offline"
+  },
+  {
+    "id": "pt",
+    "name": "Portuguese",
+    "mode": "offline"
+  },
+  {
+    "id": "br",
+    "name": "Portuguese (Brazil)",
+    "mode": "offline"
+  },
+  {
+    "id": "ru",
+    "name": "Russian",
+    "mode": "offline"
+  },
+  {
+    "id": "ua",
+    "name": "Ukrainian",
+    "mode": "offline"
+  },
+  {
+    "id": "nl",
+    "name": "Dutch",
+    "mode": "offline"
+  },
+  {
+    "id": "se",
+    "name": "Swedish",
+    "mode": "offline"
+  },
+  {
+    "id": "no",
+    "name": "Norwegian",
+    "mode": "offline"
+  },
+  {
+    "id": "dk",
+    "name": "Danish",
+    "mode": "offline"
+  },
+  {
+    "id": "fi",
+    "name": "Finnish",
+    "mode": "offline"
+  },
+  {
+    "id": "pl",
+    "name": "Polish",
+    "mode": "offline"
+  },
+  {
+    "id": "cz",
+    "name": "Czech",
+    "mode": "offline"
+  },
+  {
+    "id": "ro",
+    "name": "Romanian",
+    "mode": "offline"
+  },
+  {
+    "id": "hu",
+    "name": "Hungarian",
+    "mode": "offline"
+  },
+  {
+    "id": "gr",
+    "name": "Greek",
+    "mode": "offline"
+  },
+  {
+    "id": "il",
+    "name": "Hebrew",
+    "mode": "offline"
+  },
+  {
+    "id": "in",
+    "name": "Hindi",
+    "mode": "offline"
+  },
+  {
+    "id": "bd",
+    "name": "Bengali",
+    "mode": "offline"
+  },
+  {
+    "id": "jp",
+    "name": "Japanese",
+    "mode": "offline"
+  },
+  {
+    "id": "kr",
+    "name": "Korean",
+    "mode": "offline"
+  },
+  {
+    "id": "cn",
+    "name": "Chinese",
+    "mode": "offline"
+  },
+  {
+    "id": "id",
+    "name": "Indonesian",
+    "mode": "offline"
+  },
+  {
+    "id": "my",
+    "name": "Malay",
+    "mode": "offline"
+  }
+]
