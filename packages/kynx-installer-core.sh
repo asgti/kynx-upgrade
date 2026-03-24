@@ -125,6 +125,7 @@ do_apply_v2() {
 EOL
 
   /usr/bin/kynx-grub-write "$TARGET_MNT/boot" "Kynx OS" "/dev/vda1"
+  /usr/bin/kynx-profile-installed-apply "$TARGET_MNT"
 
   echo "[7/8] installing grub"
   grub-install \
