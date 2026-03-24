@@ -124,19 +124,7 @@ do_apply_v2() {
 /dev/vda1 / ext4 defaults 0 1
 EOL
 
-  mkdir -p "$TARGET_MNT/boot/grub"
-  cat > "$TARGET_MNT/boot/grub/grub.cfg" << 'EOL'
-set timeout=3
-set default=0
-
-if background_image /usr/share/kynx/system/grub/kynx-wallpapers-grub.jpg; then
-  true
-fi
-
-menuentry "Kynx OS" {
-  linux /boot/vmlinuz-kynx root=/dev/vda1 rw rootfstype=ext4 quiet loglevel=3 vt.global_cursor_default=0
-}
-EOL
+  /usr/bin/kynx-grub-write "$TARGET_MNT/boot" "Kynx OS" "/dev/vda1"
 
   echo "[7/8] installing grub"
   grub-install \
