@@ -8,8 +8,8 @@ OUT_DIR="${3:-/tmp/kynx-live-build}"
 ROOTFS_STAGE="$OUT_DIR/rootfs-stage"
 MEDIA_DIR="$OUT_DIR/media"
 
-sudo apt update
-sudo apt install -y squashfs-tools rsync openssh-client
+apt update
+apt install -y squashfs-tools rsync openssh-client
 
 rm -rf "$OUT_DIR"
 mkdir -p "$ROOTFS_STAGE" "$MEDIA_DIR/live" "$MEDIA_DIR/boot/grub"
@@ -41,12 +41,49 @@ rsync -a --numeric-ids --delete \
   --exclude='/boot/*' \
   root@"$HOST":/ "$ROOTFS_STAGE"/
 
-mkdir -p "$ROOTFS_STAGE/boot"
+mkdir -p "$ROOTFS_STAGE/boot" "$ROOTFS_STAGE/etc/kynx" "$ROOTFS_STAGE/bin"
 cp -f "$MEDIA_DIR/boot/vmlinuz-kynx" "$ROOTFS_STAGE/boot/vmlinuz-kynx"
 
 echo "[3/5] normalizing live stage"
 printf '%s\n' 'live' > "$ROOTFS_STAGE/etc/kynx/profile"
 printf '%s\n' 'Kynx Live' > "$ROOTFS_STAGE/etc/kynx/edition"
+
+# احفظ inittab الأصلي حتى نكدر نرجعه لبروفايلات التثبيت
+if [ -f "$ROOTFS_STAGE/etc/inittab" ]; then
+  cp -f "$ROOTFS_STAGE/etc/inittab" "$ROOTFS_STAGE/etc/kynx/inittab.installed"
+fi
+
+cat > "$ROOTFS_STAGE/bin/kynx-live-login" << 'EOL'
+#!/bin/sh
+exec /bin/login -f kynx
+EOL
+chmod +x "$ROOTFS_STAGE/bin/kynx-live-login"
+
+cat > "$ROOTFS_STAGE/bin/kynx-root-login" << 'EOL'
+#!/bin/sh
+exec /bin/login -f root
+EOL
+chmod +x "$ROOTFS_STAGE/bin/kynx-root-login"
+
+# live الافتراضي يبقى user عادي
+cat > "$ROOTFS_STAGE/etc/inittab" << 'EOL'
+::sysinit:/sbin/openrc sysinit
+::wait:/sbin/openrc boot
+::wait:/sbin/openrc default
+tty1::respawn:/sbin/getty -n -l /bin/kynx-live-login 115200 tty1 linux
+::ctrlaltdel:/sbin/reboot
+::shutdown:/sbin/openrc shutdown
+EOL
+
+cat > "$ROOTFS_STAGE/etc/fstab" << 'EOL'
+proc      /proc  proc      defaults                   0 0
+sysfs     /sys   sysfs     defaults                   0 0
+devtmpfs  /dev   devtmpfs  mode=0755,nosuid           0 0
+tmpfs     /run   tmpfs     mode=0755,nosuid,nodev     0 0
+tmpfs     /tmp   tmpfs     mode=1777,nosuid,nodev     0 0
+EOL
+
+find "$ROOTFS_STAGE/etc/runlevels" -type l -name 'sshd' -delete 2>/dev/null || true
 
 echo "[4/5] creating live/filesystem.squashfs"
 mksquashfs "$ROOTFS_STAGE" "$MEDIA_DIR/live/filesystem.squashfs" -comp xz -b 1M -noappend
@@ -59,12 +96,6 @@ Artifacts:
 - $MEDIA_DIR/boot/vmlinuz-kynx
 - $MEDIA_DIR/boot/grub/grub.cfg
 - $MEDIA_DIR/live/filesystem.squashfs
-
-Next required phase:
-- generate live initramfs
-- add early boot script to locate and mount filesystem.squashfs
-- switch_root into live root
-- build final ISO
 EOL
 
 echo
