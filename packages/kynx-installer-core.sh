@@ -126,6 +126,7 @@ EOL
 
   /usr/bin/kynx-grub-write "$TARGET_MNT/boot" "Kynx OS" "/dev/vda1"
   /usr/bin/kynx-profile-installed-apply "$TARGET_MNT"
+  chroot "$TARGET_MNT" /usr/bin/kynx-boot-profile-openrc-apply || true
 
   echo "[7/8] installing grub"
   grub-install \
