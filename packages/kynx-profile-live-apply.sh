@@ -27,16 +27,18 @@ else
   printf '%s\n' 'tty1::respawn:/sbin/getty -n -l /usr/bin/kynx-live-login 115200 tty1 linux' >> /etc/inittab
 fi
 
-sed -i 's#^\(tty[2-6]::respawn:.*\)## disabled by Kynx Live lockdown: \1#' /etc/inittab || true
+sed -i 's#^\(tty[2-6]::respawn:.*\)#\# disabled by Kynx Live lockdown: \1#' /etc/inittab || true
 
 rc-service sshd stop 2>/dev/null || true
 
 echo "live" > /etc/kynx/profile
+printf '%s\n' 'Kynx Live' > /etc/kynx/edition
+
+/usr/bin/kynx-grub-visible-apply live
+
 touch /etc/kynx/live-lockdown-applied
 
 echo "Kynx Live lockdown applied"
 echo "- tty1 autologin => kynx"
 echo "- tty2..tty6 disabled"
 echo "- sshd stopped for this live session"
-echo
-echo "Run: init q"

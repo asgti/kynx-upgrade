@@ -1,15 +1,12 @@
 #!/bin/sh
 set -eu
 
-PROFILE="${1:-}"
-if [ -z "$PROFILE" ]; then
-  PROFILE="$(cat /etc/kynx/profile 2>/dev/null || echo live)"
-fi
+PROFILE="${1:-$(cat /etc/kynx/profile 2>/dev/null || echo live)}"
 
 case "$PROFILE" in
-  live) LABEL="Kynx OS - Kynx Live" ;;
-  install-gui) LABEL="Kynx OS - Kynx Graphic Install" ;;
-  install-tui) LABEL="Kynx OS - Kynx Text Install" ;;
+  live) LABEL="Kynx OS - Live" ;;
+  install-gui) LABEL="Kynx OS - Graphic Install" ;;
+  install-tui) LABEL="Kynx OS - Text Install" ;;
   *) LABEL="Kynx OS" ;;
 esac
 
